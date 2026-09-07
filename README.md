@@ -18,7 +18,7 @@ Set these in **Vercel → Project → Settings → Environment Variables**:
 
 | Var | Purpose | Example |
 |-----|---------|---------|
-| `SITE_PASSWORD` | Basic Auth password for the whole site. Any username works. | `choose-your-own` |
+| `SITE_PASSWORD` | Password for the themed login page that gates the whole site. | `choose-your-own` |
 | `SLEEPER_LEAGUES` | JSON list of seasons/tabs to show. | `[{"label":"2026 · LIVE","id":"CURRENT_ID"},{"label":"2024 · FINAL","id":"PAST_ID"}]` |
 
 `SLEEPER_LEAGUES` also accepts a shorthand string: `2026 · LIVE:111;2024 · FINAL:222`.
@@ -29,7 +29,8 @@ If `SITE_PASSWORD` is unset the site is open (gate off). `?league=<id>` always w
 2. On [vercel.com](https://vercel.com): **Add New → Project → Import** the repo. Framework preset: **Other**.
    No build command, output dir = root.
 3. Add the two env vars above, then **Deploy**.
-4. Visiting the URL prompts for the password; enter any username + `SITE_PASSWORD` to get in.
+4. Visiting the URL shows the 🚽 **Members Only** login page; enter `SITE_PASSWORD` to get in.
+   (Auth is a serverless check + httpOnly cookie — the password never reaches the browser.)
 
 ## Run locally
 ```bash
@@ -52,6 +53,8 @@ You can also skip that file and just use `http://localhost:8000/?league=<id>`.
 | `index.html` | Page shell + fonts |
 | `style.css` | Scoreboard / penalty-flag styling |
 | `app.js` | Fetches Sleeper data, computes fines, renders the board |
-| `middleware.js` | Vercel Edge Basic Auth gate (`SITE_PASSWORD`) |
+| `login.html` | Themed 🚽 Members Only login page |
+| `middleware.js` | Vercel Edge gate — redirects to `login.html` until the auth cookie is set |
+| `api/login.js` | Validates `SITE_PASSWORD`, sets the httpOnly auth cookie |
 | `api/config.js` | Serves league ids from `SLEEPER_LEAGUES` (behind auth) |
 | `config.local.example.js` | Template for local-only league config |

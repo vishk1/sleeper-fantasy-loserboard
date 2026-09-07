@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#145f2f" />
+  <title>🚽 Members Only — The Loserboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --turf: #1b7d3e; --turf-dark: #145f2f; --flag: #ffd000;
+      --chalk: #f4f6f2; --ink: #0d1b12; --red: #e23b2e;
+      --stripe: rgba(255, 255, 255, 0.06);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Oswald", system-ui, sans-serif;
+      color: var(--chalk);
+      min-height: 100vh; min-height: 100dvh;
+      display: flex; align-items: center; justify-content: center;
+      padding: calc(24px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));
+      background:
+        repeating-linear-gradient(90deg, var(--stripe) 0 2px, transparent 2px 64px),
+        linear-gradient(160deg, var(--turf) 0%, var(--turf-dark) 100%);
+    }
+    .card {
+      width: 100%; max-width: 380px; text-align: center;
+      background: var(--ink);
+      border: 4px solid var(--flag);
+      border-radius: 16px;
+      padding: 30px 26px;
+      box-shadow: 0 10px 0 rgba(0, 0, 0, 0.4);
+    }
+    .card.wrong { animation: shake 0.4s ease; }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25% { transform: translateX(-7px) rotate(-1deg); }
+      50% { transform: translateX(7px) rotate(1deg); }
+      75% { transform: translateX(-4px); }
+    }
+    .emoji { font-size: 56px; line-height: 1; }
+    h1 {
+      font-family: "Anton", Impact, sans-serif;
+      font-size: 38px; letter-spacing: 2px; margin-top: 6px;
+      color: var(--flag); text-shadow: 2px 2px 0 var(--red);
+    }
+    .sub { font-size: 13px; opacity: 0.82; margin-top: 8px; }
+    form { display: flex; gap: 8px; margin-top: 20px; }
+    input {
+      flex: 1; min-width: 0;
+      font-family: "Oswald", sans-serif; font-size: 16px;
+      padding: 13px 14px; border-radius: 10px;
+      border: 2px solid rgba(255, 255, 255, 0.25);
+      background: rgba(255, 255, 255, 0.06); color: var(--chalk);
+    }
+    input:focus { outline: none; border-color: var(--flag); }
+    button {
+      font-family: "Anton", sans-serif; letter-spacing: 1px; font-size: 15px;
+      color: var(--ink); background: var(--flag); border: none;
+      border-radius: 10px; padding: 0 18px; cursor: pointer;
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.35);
+    }
+    button:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35); }
+    button:disabled { opacity: 0.6; cursor: default; }
+    .err { color: #ffb3ad; font-size: 13px; margin-top: 14px; min-height: 1em; }
+  </style>
+</head>
+<body>
+  <div class="card" id="card">
+    <div class="emoji">🚽</div>
+    <h1>MEMBERS ONLY</h1>
+    <p class="sub">Say the magic word to enter the Loserboard.</p>
+    <form id="form" autocomplete="off">
+      <input id="pw" type="password" placeholder="password" autocapitalize="off" spellcheck="false" autofocus />
+      <button id="btn" type="submit">LET ME IN</button>
+    </form>
+    <p class="err" id="err"></p>
+  </div>
+
+  <script>
+    const form = document.getElementById("form");
+    const pw = document.getElementById("pw");
+    const btn = document.getElementById("btn");
+    const err = document.getElementById("err");
+    const card = document.getElementById("card");
+
+    function safeNext() {
+      const n = new URLSearchParams(location.search).get("next") || "/";
+      return n.startsWith("/") && !n.startsWith("//") ? n : "/";
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      err.textContent = "";
+      btn.disabled = true;
+      try {
+        const res = await fetch("/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password: pw.value }),
+        });
+        if (res.ok) {
+          location.href = safeNext();
+          return;
+        }
+        throw new Error("bad");
+      } catch {
+        err.textContent = "🚩 Penalty flag — wrong word. Try again.";
+        pw.value = "";
+        pw.focus();
+        card.classList.remove("wrong");
+        void card.offsetWidth; // restart animation
+        card.classList.add("wrong");
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
