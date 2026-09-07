@@ -1,0 +1,9 @@
+# secrets & local-only config — never commit
+.env
+.env.*
+config.local.js
+
+# vercel / tooling
+.vercel
+node_modules
+.DS_Store
